@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer components {
+  .base-btn {
+    @apply text-sm bg-gray-200 text-gray-800 font-semibold py-2 px-4;
+  }
+  
+  .base-select {
+    @apply base-btn h-[36px];
+  }
+
+  .hovered {
+    @apply hover:bg-gray-300;
+  }
+
+  .disabled {
+    @apply text-gray-400 cursor-not-allowed;
+  }
+
+  .btn-normal {
+    @apply base-btn hovered;
+  }
+
+  .btn-normal-l {
+    @apply btn-normal rounded-l;
+  }
+
+  .btn-normal-r {
+    @apply btn-normal rounded-r;
+  }
+
+  .btn-disabled {
+    @apply base-btn disabled;
+  }
+  
+  .btn-disabled-l {
+    @apply btn-disabled rounded-l;
+  }
+  
+  .btn-disabled-r {
+    @apply btn-disabled rounded-r;
+  }
+
+  .select-normal {
+    @apply base-select hovered;
+  }
+
+  .select-disabled {
+    @apply base-select disabled;
+  }
+
+  .input-base {
+    @apply w-full rounded-lg border-2 border-gray-300 shadow-sm p-3 focus:border-indigo-500 transition ease-in-out;
+  }
+
+  .label-base {
+    @apply absolute -top-3 left-2 bg-white px-1 text-sm text-gray-500;
+  }
+}
