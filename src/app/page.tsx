@@ -9,74 +9,52 @@ import TableBody from '@/components/TableBody';
 import FilterMenu from '@/components/FilterMenu';
 import type { FilterType, IdsType } from '@/types';
 
-const fetchData = async (setIds: Dispatch<SetStateAction<IdsType>>) => {
-  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const url = 'http://api.valantis.store:40000/';
-  const xAuth = md5(`Valantis_${timestamp}`);
-
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'X-Auth': xAuth,
-        'Content-Type': 'application/json',
+const fetchFiltered = async (
+  setIds: Dispatch<SetStateAction<IdsType>>,
+  filter: FilterType | null,
+  setLoading: Dispatch<SetStateAction<boolean>>,
+  ) => {
+    const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+    const url = 'http://api.valantis.store:40000/';
+    const xAuth = md5(`Valantis_${timestamp}`);
+    
+    const requestBody = filter
+    ? JSON.stringify({
+      action: "filter",
+      params: {
+        product: filter.product,
+        price: filter.price ? +filter.price : undefined,
+        brand: filter.brand,
       },
-      body: JSON.stringify({
-        "action": "get_ids",
-        "params": {},
-      })
+    })
+    : JSON.stringify({
+      action: "get_ids",
+      params: {},
     });
+    
+    setIds(null);
+    setLoading(true);
+    try {
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-Auth': xAuth,
+          'Content-Type': 'application/json',
+        },
+        body: requestBody,
+      });
 
-    const data: { result: Array<string> } = await res.json();
-    const set = new Set(data.result);
-    setIds([...set]);
-  } catch (error) {
-    setIds('error');
-    console.error('Error fetching data:', error);
-    if (error instanceof Error && error.name) {
-      console.error(`Error ID: ${error.name}`);
+      const data: { result: Array<string> } = await res.json();
+      const uniqueIds = new Set(data.result);
+      setIds([...uniqueIds]);
+    } catch (error) {
+      setIds('error');
+      console.error('Error fetching data:', error);
+      if (error instanceof Error && error.name) {
+        console.error(`Error ID: ${error.name}`);
+      }
+      fetchFiltered(setIds, filter, setLoading);
     }
-    fetchData(setIds);
-  }
-};
-
-const fetchFiltered = async (setIds: Dispatch<SetStateAction<IdsType>>, filter: FilterType | null) => {
-  const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const url = 'http://api.valantis.store:40000/';
-  const xAuth = md5(`Valantis_${timestamp}`);
-  
-  const requestBody = filter
-  ? JSON.stringify({
-    action: "filter",
-    params: filter,
-  })
-  : JSON.stringify({
-    action: "get_ids",
-    params: {},
-  });
-  
-  setIds(null);
-  try {
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'X-Auth': xAuth,
-        'Content-Type': 'application/json',
-      },
-      body: requestBody,
-    });
-
-    const data: { result: Array<string> } = await res.json();
-    const uniqueIds = new Set(data.result);
-    setIds([...uniqueIds]);
-  } catch (error) {
-    setIds('error');
-    console.error('Error fetching data:', error);
-    if (error instanceof Error && error.name) {
-      console.error(`Error ID: ${error.name}`);
-    }
-    fetchFiltered(setIds, filter);
-  }
 };
 
 
@@ -86,27 +64,34 @@ export default function Home() {
   const [isLoading, setLoading] = useState<boolean>(true);
   const [filter, setFilter] = useState<FilterType | null>(null);
 
-  // useEffect(() => {
-  //   fetchData(setIds);
-  // }, []);
-
   useEffect(() => {
-    fetchFiltered(setIds, filter);
+    fetchFiltered(setIds, filter, setLoading);
   }, [filter]);
 
   if (!ids)
-    return (<Loading />)
+    return (<>
+      <FilterMenu setFilter={setFilter} filter={filter} disabled={true} setPage={setPage}/>
+      <Loading />
+      </>)
   else
     return (
       <>
-      <FilterMenu />
+      <FilterMenu setFilter={setFilter} filter={filter} setPage={setPage}/>
       <TableContainer>
         <TableHeader />
         {typeof ids === 'string'
           ? 'error occured, trying again...'
           : <>
-            <TableBody ids={ids.slice((page - 1) * 50, page * 50)} setLoading={setLoading} isLoading={isLoading}/>
-            <TableFooter currPage={page} totalAmount={Math.ceil(ids.length / 50)} setPage={setPage} setLoading={setLoading} isLoading={isLoading}/>
+            <TableBody
+              ids={ids.slice((page - 1) * 50, page * 50)}
+              setLoading={setLoading}
+              isLoading={isLoading}/>
+            <TableFooter
+              currPage={page}
+              totalAmount={Math.ceil(ids.length / 50)}
+              setPage={setPage}
+              setLoading={setLoading}
+              isLoading={isLoading}/>
           </>}
       </TableContainer>
       </>

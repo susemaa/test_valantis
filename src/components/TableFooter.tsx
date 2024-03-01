@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction, useEffect } from "react";
+import { Dispatch, SetStateAction } from 'react';
 
 interface TableFooterProps {
 	currPage: number,
@@ -9,19 +9,30 @@ interface TableFooterProps {
 }
 
 const TableFooter: React.FC<TableFooterProps> = ({ currPage, totalAmount, setPage, setLoading, isLoading }) => {
-	useEffect(() => {
-		console.log(isLoading);
-	}, [currPage, isLoading]);
+	const isDisabled = (btn: 'prev' | 'next'): boolean => {
+		if (isLoading)
+			return true;
+		if (!totalAmount)
+			return true;
+		if (currPage === 1 && btn === 'prev')
+			return true;
+		if (currPage === totalAmount && btn == 'next')
+			return true;
+	
+		return false;
+	}
+
+	if (!totalAmount)
+		return null;
   return (
 		<tfoot>
 			<tr>
 				<td colSpan={4} className="py-3 px-6 text-center">
 					<div className="inline-flex items-center">
 						<button
-							className={currPage === 1 || isLoading ? 'btn-disabled-l' : 'btn-normal-l'}
-							disabled={currPage === 1 || isLoading === true}
-							onClick={() => { setLoading(true); setPage(currPage - 1); }}
-						>
+							className={isDisabled('prev') ? 'btn-disabled-l' : 'btn-normal-l'}
+							disabled={isDisabled('prev')}
+							onClick={() => { setLoading(true); setPage(currPage - 1); }}>
 							Prev
 						</button>
 						
@@ -29,19 +40,18 @@ const TableFooter: React.FC<TableFooterProps> = ({ currPage, totalAmount, setPag
 							className={isLoading ? 'select-disabled' : 'select-normal'}
 							value={currPage}
 							onChange={(e) => { setLoading(true); setPage(Number(e.target.value)); }}
-							disabled={isLoading}
-						>
+							disabled={isLoading}>
 							{Array.from({ length: totalAmount }, (_, index) => (
 								<option key={index + 1} value={index + 1}>
 									{index + 1}
 								</option>
 							))}
 						</select>
+
 						<button
-							className={currPage === totalAmount || isLoading ? 'btn-disabled-r' : 'btn-normal-r'}
-							disabled={currPage === totalAmount || isLoading}
-							onClick={() => { setLoading(true); setPage(currPage + 1); }}
-						>
+							className={isDisabled('next') ? 'btn-disabled-r' : 'btn-normal-r'}
+							disabled={isDisabled('next')}
+							onClick={() => { setLoading(true); setPage(currPage + 1); }}>
 							Next
 						</button>
 					</div>
