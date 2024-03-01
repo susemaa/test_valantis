@@ -15,7 +15,7 @@ const fetchFiltered = async (
   setLoading: Dispatch<SetStateAction<boolean>>,
   ) => {
     const timestamp = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const url = 'http://api.valantis.store:40000/';
+    const url = 'https://api.valantis.store:41000/';
     const xAuth = md5(`Valantis_${timestamp}`);
     
     const requestBody = filter
